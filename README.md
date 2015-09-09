@@ -19,7 +19,7 @@ is generally set via parameters of the algorithm.
 # Algorithm
 This is an implementation of the following paper for Spark:
 
-"Randomized Algorithms and NLP: Using Locality Sensitive Hash Function for High Speed Noun Clustering"
+[Randomized Algorithms and NLP: Using Locality Sensitive Hash Function for High Speed Noun Clustering](http://dl.acm.org/citation.cfm?id=1219917)
 
 -- <cite>Ravichandran et al.</cite>
 
