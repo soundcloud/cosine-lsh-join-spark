@@ -1,16 +1,13 @@
 package com.soundcloud.lsh
 
-import com.soundcloud.lsh.Lsh.Signature
 import org.apache.spark.mllib.linalg.distributed._
-import org.apache.spark.mllib.linalg.{Matrices, Vectors}
+import org.apache.spark.mllib.linalg.{ Matrices, Vectors }
 import org.apache.spark.util.collection.BitSet
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.{ FunSuite, Matchers }
 
-class LshTest
-  extends FunSuite
-  with SparkLocalContext
-  with Matchers {
+import com.soundcloud.lsh.Lsh.Signature
 
+class LshTest extends FunSuite with SparkLocalContext with Matchers {
   val lsh = new Lsh(
     minCosineSimilarity = -1.0,
     dimensions = 1000,

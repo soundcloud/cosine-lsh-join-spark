@@ -1,15 +1,24 @@
 package com.soundcloud.lsh
 
-import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, IndexedRowMatrix, MatrixEntry}
+import org.apache.spark.mllib.linalg.distributed.{
+  CoordinateMatrix,
+  IndexedRow,
+  IndexedRowMatrix,
+  MatrixEntry
+}
 
 /**
- * Uses brute force method to compute nearest neighbours. As this is a very expensive computation O(n^2)
- * an additional sample parameter may be passed such that neighbours are just computed for a random fraction.
- * This method is provided to compare the LSH quality to the exact KNN solution on a random subset.
+ * Brute force O(n^2) method to compute exact nearest neighbours.
+ *
+ * @param distance a function defining a metric over a vector space
+ * @param threshold pairs that are >= to the distance are discarded
+ * @param sample compute neighbours for the given random sample value
+ *
  */
-class NearestNeighbours(vectorSimilarity: VectorSimilarity, threshold: Double, sample: Double = 0.1)
-  extends Joiner
-  with Serializable {
+class NearestNeighbours(
+  distance: VectorSimilarity,
+  threshold: Double,
+  sample: Double = 0.1) extends Joiner with Serializable {
 
   def join(inputMatrix: IndexedRowMatrix): CoordinateMatrix = {
     val rows = inputMatrix.rows
@@ -20,7 +29,7 @@ class NearestNeighbours(vectorSimilarity: VectorSimilarity, threshold: Double, s
 
     val similarity = joined.map {
       case ((rowA: IndexedRow), (rowB: IndexedRow)) =>
-        ((rowA.index, rowB.index), vectorSimilarity(rowA.vector, rowB.vector))
+        ((rowA.index, rowB.index), distance(rowA.vector, rowB.vector))
     }
 
     val neighbours = similarity.filter {
@@ -36,5 +45,4 @@ class NearestNeighbours(vectorSimilarity: VectorSimilarity, threshold: Double, s
 
     new CoordinateMatrix(resultRows)
   }
-
 }

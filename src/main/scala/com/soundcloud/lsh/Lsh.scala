@@ -1,7 +1,7 @@
 package com.soundcloud.lsh
 
 import org.apache.spark.mllib.linalg.distributed._
-import org.apache.spark.mllib.linalg.{Matrices, Matrix, Vector}
+import org.apache.spark.mllib.linalg.{ Matrices, Matrix, Vector }
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.collection.BitSet
@@ -9,11 +9,20 @@ import org.apache.spark.util.collection.BitSet
 import scala.util.Random
 
 /**
- * A basic trait which defines a join
+ * Find the k nearest neighbors from a dataset for every other object in the
+ * same dataset. Multiple datasets are not supported. Implementations may be
+ * either exact or approximate.
+ *
+ * @param matrix a row oriented matrix. Each row in the matrix represents
+ *               a record in the dataset. Records are indexed by an arbitrary
+ *               given identifier.
+ * @return a similarity matrix with MatrixEntry(id_a, id_b, similarity). All
+ *         pairs failing to meet the minimum similarity threshold are not
+ *         included.
  *
  */
 trait Joiner {
-  def join(inputMatrix: IndexedRowMatrix): CoordinateMatrix
+  def join(matrix: IndexedRowMatrix): CoordinateMatrix
 }
 
 /**
@@ -26,6 +35,7 @@ trait Joiner {
  *                   vectors of length d
  * @param numNeighbours beam factor e.g. how many neighbours are considered
  * @param numPermutations num permutations
+ *
  */
 class Lsh(minCosineSimilarity: Double,
           dimensions: Int,
@@ -60,8 +70,10 @@ class Lsh(minCosineSimilarity: Double,
   }
 
   /**
-   * Returns a local k by d matrix with random gaussian entries mean=0.0 and std=1.0
-   * Note: this is a k by d matrix as it is multiplied by the input matrix
+   * Returns a local k by d matrix with random gaussian entries mean=0.0 and
+   * std=1.0 
+   *
+   * This is a k by d matrix as it is multiplied by the input matrix
    *
    */
   def localRandomMatrix(d: Int, numFeatures: Int): Matrix = {
@@ -245,4 +257,3 @@ object Lsh {
     }
   }
 }
-
