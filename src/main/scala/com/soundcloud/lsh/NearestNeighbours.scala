@@ -1,28 +1,25 @@
 package com.soundcloud.lsh
 
-import org.apache.spark.mllib.linalg.distributed.{
-  CoordinateMatrix,
-  IndexedRow,
-  IndexedRowMatrix,
-  MatrixEntry
-}
+import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, IndexedRowMatrix, MatrixEntry}
 
 /**
  * Brute force O(n^2) method to compute exact nearest neighbours.
+ * As this is a very expensive computation O(n^2) an additional sample parameter may be passed such
+ * that neighbours are just computed for a random fraction.
  *
  * @param distance a function defining a metric over a vector space
  * @param threshold pairs that are >= to the distance are discarded
- * @param sample compute neighbours for the given random sample value
+ * @param fraction compute neighbours for the given fraction
  *
  */
 class NearestNeighbours(
-  distance: VectorSimilarity,
+  distance: VectorDisctance,
   threshold: Double,
-  sample: Double = 0.1) extends Joiner with Serializable {
+  fraction: Double = 0.1) extends Joiner with Serializable {
 
   def join(inputMatrix: IndexedRowMatrix): CoordinateMatrix = {
     val rows = inputMatrix.rows
-    val sampledRows = rows.sample(false, sample)
+    val sampledRows = rows.sample(false, fraction)
     sampledRows.cache()
 
     val joined = sampledRows.cartesian(rows)

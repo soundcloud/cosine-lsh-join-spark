@@ -10,15 +10,12 @@ import scala.util.Random
 
 /**
  * Find the k nearest neighbors from a dataset for every other object in the
- * same dataset. Multiple datasets are not supported. Implementations may be
- * either exact or approximate.
+ * same dataset. Implementations may be either exact or approximate.
  *
  * @param matrix a row oriented matrix. Each row in the matrix represents
- *               a record in the dataset. Records are indexed by an arbitrary
- *               given identifier.
- * @return a similarity matrix with MatrixEntry(id_a, id_b, similarity). All
- *         pairs failing to meet the minimum similarity threshold are not
- *         included.
+ *               a record in the dataset. Records are identified by their
+ *               matrix index.
+ * @return a similarity matrix with MatrixEntry(index_a, index_b, similarity).
  *
  */
 trait Joiner {
@@ -28,13 +25,16 @@ trait Joiner {
 /**
  * Lsh implementation as described in 'Randomized Algorithms and NLP: Using
  * Locality Sensitive Hash Function for High Speed Noun Clustering' by
- * Ravichandran et al.
+ * Ravichandran et al. See original publication for a detailed description of
+ * the parameters.
  *
  * @param minCosineSimilarity minimum similarity two items need to have
+ *                            otherwise they are discarded from the result set
  * @param dimensions number of random vectors (hyperplanes) to generate bit
  *                   vectors of length d
  * @param numNeighbours beam factor e.g. how many neighbours are considered
- * @param numPermutations num permutations
+ *                      in the sliding window
+ * @param numPermutations number of times bitsets are permuted
  *
  */
 class Lsh(minCosineSimilarity: Double,

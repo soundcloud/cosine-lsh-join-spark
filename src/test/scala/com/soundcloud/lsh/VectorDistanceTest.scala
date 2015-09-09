@@ -3,7 +3,7 @@ package com.soundcloud.lsh
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.scalatest.{FunSuite, Matchers}
 
-class  VectorSimilarityTest
+class  VectorDistanceTest
   extends FunSuite
   with SparkLocalContext
   with Matchers {
