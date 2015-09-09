@@ -66,13 +66,14 @@ Input to the algorithm is an IndexedRowMatrix where each row reprents a single i
 	// item:1 item:3 cosine:0,87
 	// item:1 item:2 cosine:1,00
   
-Please see included Main.scala file for a more detailed example.
+Please see included **Main.scala** file for a more detailed example.
 
 #Parameters
 Please see the original publication for a detailed description of the parameters. 
 
 #Contributors
-Özgür Demir
+[Özgür Demir](https://github.com/ozgurdemir)
 
-Rany Keddo
+[Rany Keddo](https://github.com/purzelrakete/)
 
+[Alexey Yakushef Rodriguez](https://github.com/alexeyrodriguez)
