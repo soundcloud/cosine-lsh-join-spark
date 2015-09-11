@@ -36,7 +36,6 @@ publishArtifact in Test := false
 
 pomExtra := (
     <url>https://github.com/soundcloud/cosine-lsh-join-spark</url>
-    <description>A spark library for approximate nearest neighbours (ANN).</description>
     <licenses>
       <license>
         <name>MIT License</name>
