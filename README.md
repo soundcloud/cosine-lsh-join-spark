@@ -71,6 +71,11 @@ Please see included **Main.scala** file for a more detailed example.
 #Parameters
 Please see the original publication for a detailed description of the parameters. 
 
+#Maven
+The artifacts are hosted on Maven Central. Add the following line to your build.sbt file:
+	
+	libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "0.0.3"
+
 #Contributors
 [Özgür Demir](https://github.com/ozgurdemir)
 
