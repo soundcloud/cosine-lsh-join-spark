@@ -13,7 +13,7 @@ import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, 
  *
  */
 class NearestNeighbours(
-  distance: VectorDisctance,
+  distance: VectorDistance,
   threshold: Double,
   fraction: Double = 0.1) extends Joiner with Serializable {
 
