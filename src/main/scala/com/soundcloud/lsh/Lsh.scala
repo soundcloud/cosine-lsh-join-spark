@@ -28,6 +28,8 @@ trait Joiner {
  * Ravichandran et al. See original publication for a detailed description of
  * the parameters.
  *
+ * @see http://dl.acm.org/citation.cfm?id=1219917
+ *
  * @param minCosineSimilarity minimum similarity two items need to have
  *                            otherwise they are discarded from the result set
  * @param dimensions number of random vectors (hyperplanes) to generate bit
