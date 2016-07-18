@@ -5,15 +5,15 @@ import org.apache.spark.mllib.linalg.Vector
 /**
  * interface defining similarity measurement between 2 vectors
  */
-trait VectorDisctance extends Serializable {
+trait VectorDistance extends Serializable {
   def apply(vecA: Vector, vecB: Vector): Double
 }
 
 /**
- * implementation of [[VectorDisctance]] that computes cosine similarity
+ * implementation of [[VectorDistance]] that computes cosine similarity
  * between two vectors
  */
-object Cosine extends VectorDisctance {
+object Cosine extends VectorDistance {
 
   def apply(vecA: Vector, vecB: Vector): Double = {
     val vecAarray = vecA.toArray
