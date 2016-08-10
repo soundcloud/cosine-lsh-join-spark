@@ -82,3 +82,5 @@ The artifacts are hosted on Maven Central. Add the following line to your build.
 [Rany Keddo](https://github.com/purzelrakete/)
 
 [Alexey Rodriguez Yakushev](https://github.com/alexeyrodriguez)
+
+[Aaron Levin](https://github.com/aaronlevin)

@@ -7,15 +7,15 @@ import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, 
  * As this is a very expensive computation O(n^2) an additional sample parameter may be passed such
  * that neighbours are just computed for a random fraction.
  *
- * @param distance a function defining a metric over a vector space
+ * @param distance  a function defining a metric over a vector space
  * @param threshold pairs that are >= to the distance are discarded
- * @param fraction compute neighbours for the given fraction
+ * @param fraction  compute neighbours for the given fraction
  *
  */
 class NearestNeighbours(
-  distance: VectorDistance,
-  threshold: Double,
-  fraction: Double = 0.1) extends Joiner with Serializable {
+                         distance: VectorDistance,
+                         threshold: Double,
+                         fraction: Double) extends Joiner with Serializable {
 
   def join(inputMatrix: IndexedRowMatrix): CoordinateMatrix = {
     val rows = inputMatrix.rows

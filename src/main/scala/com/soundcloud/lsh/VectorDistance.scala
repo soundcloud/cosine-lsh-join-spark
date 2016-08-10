@@ -1,5 +1,6 @@
 package com.soundcloud.lsh
 
+import com.github.fommil.netlib.BLAS.{getInstance => blas}
 import org.apache.spark.mllib.linalg.Vector
 
 /**
@@ -16,17 +17,17 @@ trait VectorDistance extends Serializable {
 object Cosine extends VectorDistance {
 
   def apply(vecA: Vector, vecB: Vector): Double = {
-    val vecAarray = vecA.toArray
-    val vecBarray = vecB.toArray
-    dotProduct(vecAarray, vecBarray) / (l2(vecAarray) * l2(vecBarray))
+    val v1 = vecA.toArray.map(_.toFloat)
+    val v2 = vecB.toArray.map(_.toFloat)
+    apply(v1, v2)
   }
 
-  def dotProduct(vecA: Array[Double], vecB: Array[Double]): Double = {
-    vecA.view.zip(vecB.view).map { case (a, b) => a * b}.sum
-  }
-
-  def l2(vec: Array[Double]): Double = {
-    Math.sqrt(dotProduct(vec, vec))
+  def apply(vecA: Array[Float], vecB: Array[Float]): Double = {
+    val n = vecA.length
+    val norm1 = blas.snrm2(n, vecA, 1)
+    val norm2 = blas.snrm2(n, vecB, 1)
+    if (norm1 == 0 || norm2 == 0) return 0.0
+    blas.sdot(n, vecA, 1, vecB, 1) / norm1 / norm2
   }
 
 }
