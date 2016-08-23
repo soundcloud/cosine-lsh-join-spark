@@ -4,9 +4,9 @@ import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRow, 
 
 /**
  * Brute force O(size(query) * size(catalog)) method to compute exact nearest neighbours for
- * rows in the query matrix. As this is a very expensive computation, an additional sample 
- * parameter may be passed such that neighbours are just computed for a random fraction of
- * the catalog.
+ * rows in the query matrix. As this is a very expensive computation, additional sample
+ * parameters may be passed such that neighbours are just computed for a random fraction of
+ * the data set.
  *
  * @param distance        a function defining a metric over a vector space
  * @param threshold       pairs that are >= to the distance are discarded

@@ -16,23 +16,22 @@ very fast but might not give the exact solution and are hence called
 approximate nearest neighbours (ANN). The trade off between accuracy and speed
 is generally set via parameters of the algorithm.
 
-# Algorithm
-This is an implementation of the following paper for Spark:
+# Joiner Interface
 
-[Randomized Algorithms and NLP: Using Locality Sensitive Hash Function for High Speed Noun Clustering](http://dl.acm.org/citation.cfm?id=1219917)
+This is an interface to find the k nearest neighbors from a data set for every other object in the
+   same data set. Implementations may be either exact or approximate.
+   
+    trait Joiner {
+        def join(matrix: IndexedRowMatrix): CoordinateMatrix
+    }
+   
+matrix is a row oriented matrix. Each row in the matrix represents
+an item in the dataset. Items are identified by their
+matrix index.
+Returns a similarity matrix with MatrixEntry(itemA, itemB, similarity).
 
--- <cite>Ravichandran et al.</cite>
-
-The algorithms performs a so called **ANN-Join** (Approximate Nearest Neighbours Join). That is for every item in the input dataset find the k-nearest neighbours above a certain threshold similarity. 
-
-The algorithm determines a set of candidate items in the first stage and only computes the exact cosine similarity for those candidates. It has been succesfully used in production with typical run times of a couple of minutes for millions of items. 
-
-Note that candidates are ranked by their exact cosine similarity. Hence, this algorithm will not return any false positives (items that the system thinks are nearby but are actually not). Most real world applications require this e.g. in recommendation systems it is ok to return similar items which are almost as good as the exact nearest neighbours but showing false positives would result in senseless recommendations.
-
-#Usage
-Input to the algorithm is an IndexedRowMatrix where each row reprents a single item e.g.
-
-	// item_a --> (1.0, 1.0, 1.0)
+# Example
+    // item_a --> (1.0, 1.0, 1.0)
 	// item_b --> (2.0, 2.0, 2.0) 
 	// item_c --> (6.0, 3.0, 2.0) 
 
@@ -42,6 +41,34 @@ Input to the algorithm is an IndexedRowMatrix where each row reprents a single i
       IndexedRow(5, Vectors.dense(6.0, 3.0, 2.0))
     )
     val matrix = new IndexedRowMatrix(sc.parallelize(rows))
+    val similariyMatrix = joiner.join(matrix)
+    
+    val results = similariyMatrix.entries.map {
+          entry =>
+            "item:%d item:%d cosine:%.2f".format(entry.i, entry.j, entry.value)
+        }
+        
+    results.foreach(println)
+        
+    // above will print:
+    // item:2 item:3 cosine:0,87
+    // item:1 item:3 cosine:0,87
+    // item:1 item:2 cosine:1,00
+    
+Please see included **Main.scala** file for a more detailed example.
+
+## Implementations of the joiner interface
+
+### LSH
+This is an implementation of the following paper for Spark:
+
+[Randomized Algorithms and NLP: Using Locality Sensitive Hash Function for High Speed Noun Clustering](http://dl.acm.org/citation.cfm?id=1219917)
+
+-- <cite>Ravichandran et al.</cite>
+
+The algorithm determines a set of candidate items in the first stage and only computes the exact cosine similarity for those candidates. It has been succesfully used in production with typical run times of a couple of minutes for millions of items. 
+
+Note that candidates are ranked by their exact cosine similarity. Hence, this algorithm will not return any false positives (items that the system thinks are nearby but are actually not). Most real world applications require this e.g. in recommendation systems it is ok to return similar items which are almost as good as the exact nearest neighbours but showing false positives would result in senseless recommendations.
 
     val lsh = new Lsh(
       minCosineSimilarity = 0.5,
@@ -52,29 +79,42 @@ Input to the algorithm is an IndexedRowMatrix where each row reprents a single i
       storageLevel = StorageLevel.MEMORY_ONLY
     )
 
-    val similariyMatrix = lsh.join(matrix)
+Please see the original publication for a detailed description of the parameters. 
 
-    val results = similariyMatrix.entries.map {
-      entry =>
-        "item:%d item:%d cosine:%.2f".format(entry.i, entry.j, entry.value)
+### NearestNeighbours
+Brute force method to compute exact nearest neighbours.
+As this is a very expensive computation O(n^2) an additional sample parameter may be passed such
+that neighbours are just computed for a random fraction.
+This interface may be used to tune parameters for approximate solutions
+on a small subset of data.
+
+# QueryJoiner Interface
+An interface to find the nearest neighbours in a catalog matrix for each entry in a query matrix.
+Implementations may be either exact or approximate.
+
+    trait QueryJoiner {
+      def join(queryMatrix: IndexedRowMatrix, catalogMatrix: IndexedRowMatrix): CoordinateMatrix
     }
 
-    results.foreach(println)
-    
-	// above will print:
-	// item:2 item:3 cosine:0,87
-	// item:1 item:3 cosine:0,87
-	// item:1 item:2 cosine:1,00
-  
-Please see included **Main.scala** file for a more detailed example.
+## Implementations of the QueryJoiner Interface
 
-#Parameters
-Please see the original publication for a detailed description of the parameters. 
+### QueryLsh
+Standard Lsh implementation. A query matrix is hashed multiple times and exact hash matches are searched for in a catalog Matrix. These candidates are used to compute the exact cosine distance.
+ 
+### QueryHamming
+
+Implementation based on approximated cosine distances. The cosine distances are
+approximated using hamming distances which are way faster to compute.
+The catalog matrix is broadcasted. This implementation is therefore suited for
+tasks where the catalog matrix is very small compared to the query matrix.
+
+### QueryNearestNeighbours
+Brute force O(size(query) * size(catalog)) method to compute exact nearest neighbours for rows in the query matrix. As this is a very expensive computation additional sample parameters may be passed such that neighbours are just computed for a random fraction of the data set. This interface may be used to tune parameters for approximate solutions on a small subset of data.
 
 #Maven
 The artifacts are hosted on Maven Central. Add the following line to your build.sbt file:
 	
-	libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "0.0.3"
+	libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "0.0.4"
 
 #Contributors
 [Özgür Demir](https://github.com/ozgurdemir)
