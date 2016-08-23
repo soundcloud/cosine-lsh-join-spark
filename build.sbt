@@ -4,7 +4,7 @@ name := "cosine-lsh-join-spark"
 
 version := "0.0.4"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.10.6"
 
 // do not run multiple SparkContext's in local mode in parallel
 parallelExecution in Test := false
