@@ -58,7 +58,7 @@ class SlidingRDD[T: ClassTag](@transient val parent: RDD[T], val windowSize: Int
       val windowSizeMinusOne = windowSize - 1
       // Get the first w1 items of each partition, starting from the second partition.
       val nextHeads =
-        parent.context.runJob(parent, (iter: Iterator[T]) => iter.take(windowSizeMinusOne).toArray, 1 until n, true)
+        parent.context.runJob(parent, (iter: Iterator[T]) => iter.take(windowSizeMinusOne).toArray, 1 until n)
       val partitions = mutable.ArrayBuffer[SlidingRDDPartition[T]]()
       var i = 0
       var partitionIndex = 0
