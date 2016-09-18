@@ -114,7 +114,7 @@ Brute force O(size(query) * size(catalog)) method to compute exact nearest neigh
 #Maven
 The artifacts are hosted on Maven Central. Add the following line to your build.sbt file:
 	
-	libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "0.0.4"
+	libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.11" % "0.0.4"
 
 #Contributors
 [Özgür Demir](https://github.com/ozgurdemir)
