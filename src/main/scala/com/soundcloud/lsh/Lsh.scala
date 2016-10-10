@@ -97,14 +97,13 @@ class Lsh(minCosineSimilarity: Double,
    * Creates a sliding window
    *
    */
-  def createSlidingWindow(signatures: RDD[Signature], b: Int): RDD[Seq[Signature]] = {
-    new SlidingRDD[Signature](signatures, b)
+  def createSlidingWindow(signatures: RDD[Signature], b: Int): RDD[Array[Signature]] = {
+    new SlidingRDD[Signature](signatures, b, b)
   }
 
 
-  def findNeighbours(signatures: RDD[Seq[Signature]], minCosineSimilarity: Double): RDD[MatrixEntry] = {
-    signatures.flatMap {
-      signature: Iterable[Signature] =>
+  def findNeighbours(signatures: RDD[Array[Signature]], minCosineSimilarity: Double): RDD[MatrixEntry] = {
+    signatures.flatMap { signature: Array[Signature] =>
         neighbours(signature, minCosineSimilarity)
     }
   }
@@ -113,15 +112,14 @@ class Lsh(minCosineSimilarity: Double,
    * Generate all pairs and emit if cosine of pair > minCosineSimilarity
    *
    */
-  def neighbours(signatures: Iterable[Signature], minCosineSimilarity: Double): Iterator[MatrixEntry] = {
+  def neighbours(signatures: Array[Signature], minCosineSimilarity: Double): Iterator[MatrixEntry] = {
     signatures.
-      toSeq.
       sortBy(_.index). // sort in order to create an upper triangular matrix
       combinations(2).
       map {
-        case first :: other :: nil =>
-          val cosine = Cosine(first.vector, other.vector)
-          MatrixEntry(first.index, other.index, cosine)
+        case Array(first, second) =>
+          val cosine = Cosine(first.vector, second.vector)
+          MatrixEntry(first.index, second.index, cosine)
       }.
       filter(_.value >= minCosineSimilarity)
   }

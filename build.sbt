@@ -2,7 +2,7 @@ organization := "com.soundcloud"
 
 name := "cosine-lsh-join-spark"
 
-version := "0.0.5"
+version := "1.0.0"
 
 scalaVersion := "2.10.6"
 
@@ -11,8 +11,8 @@ parallelExecution in Test := false
 
 // main dependencies
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % "1.4.1" % "provided",
-  "org.apache.spark" %% "spark-mllib" % "1.4.1" % "provided"
+  "org.apache.spark" %% "spark-core" % "2.0.1" % "provided",
+  "org.apache.spark" %% "spark-mllib" % "2.0.1" % "provided"
 )
 
 // test dependencies

@@ -72,31 +72,41 @@ class LshTest extends FunSuite with SparkLocalContext with Matchers with TestHel
     got(2).index should be(0)
   }
 
+  def gotIndexOnly(input: Array[Array[Signature]]): Array[Array[Long]] = {
+    input.map {
+      window: Array[Signature] =>
+        window.map(_.index)
+    }
+  }
+
+  val vector = Vectors.dense(1, 2, 3)
+  val signatures = Seq(
+    Signature(3, vector, new BitSet(4)),
+    Signature(4, vector, new BitSet(4)),
+    Signature(1, vector, new BitSet(4)),
+    Signature(2, vector, new BitSet(4)),
+    Signature(5, vector, new BitSet(4))
+  )
+
   test("sliding window") {
-    val vector = Vectors.dense(1, 2, 3)
-    val signatures = Seq(
-      Signature(3, vector, new BitSet(4)),
-      Signature(4, vector, new BitSet(4)),
-      Signature(1, vector, new BitSet(4)),
-      Signature(2, vector, new BitSet(4)),
-      Signature(5, vector, new BitSet(4))
-    )
     val got = lsh.createSlidingWindow(sc.parallelize(signatures), 3)
     val expected = Seq(
       List(3, 4, 1),
       List(2, 5)
     )
-    // fot easier comparison
-    val gotWithoutBitSet = got.collect.toSeq.map {
-      window: Iterable[Signature] =>
-        window.map(_.index)
-    }
+    gotIndexOnly(got.collect) should be(expected)
+  }
 
-    gotWithoutBitSet should be(expected)
+  test("sliding window partial") {
+    val got2 = lsh.createSlidingWindow(sc.parallelize(signatures), 20)
+    val expected2 = Seq(
+      List(3, 4, 1, 2, 5)
+    )
+    gotIndexOnly(got2.collect) should be(expected2)
   }
 
   test("neighbours") {
-    val signatures = Seq(
+    val signatures = Array(
       Signature(3, Vectors.dense(0, 1), new BitSet(4)),
       Signature(4, Vectors.dense(0, 1), new BitSet(4)),
       Signature(1, Vectors.dense(0, 1), new BitSet(4)),
