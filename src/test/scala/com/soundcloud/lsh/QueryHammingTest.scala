@@ -49,7 +49,7 @@ class QueryHammingTest
       MatrixEntry(1, 2, Cosine(queryVectorB, catalogVectorC))
     )
 
-    implicit val equality = new MatrixEquality(0.01)
+    implicit val equality = new MatrixEquality(0.02)
     got should equal(expected)
   }
 }

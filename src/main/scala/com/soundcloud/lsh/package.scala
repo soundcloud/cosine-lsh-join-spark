@@ -66,10 +66,14 @@ package object lsh {
    *
    */
   def matrixToBitSet(inputMatrix: IndexedRowMatrix, localRandomMatrix: Matrix): RDD[Signature] = {
-    inputMatrix.multiply(localRandomMatrix).rows.map {
-      indexedRow: IndexedRow =>
-        val bitSet = vectorToBitSet(indexedRow.vector)
-        Signature(indexedRow.index, indexedRow.vector, bitSet)
+    val bitSets = inputMatrix.multiply(localRandomMatrix).rows.map {
+      indexedRow =>
+        (indexedRow.index, vectorToBitSet(indexedRow.vector))
+    }
+    val originalVectors = inputMatrix.rows.map { row => (row.index, row.vector) }
+    bitSets.join(originalVectors).map {
+      case (id, (bitSet, vector)) =>
+        Signature(id, vector, bitSet)
     }
   }
 
