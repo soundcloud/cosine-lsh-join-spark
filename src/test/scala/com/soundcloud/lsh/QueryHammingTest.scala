@@ -39,7 +39,7 @@ class QueryHammingTest
     val queryMatrix = new IndexedRowMatrix(sc.parallelize(queryRows))
     val catalogMatrix = new IndexedRowMatrix(sc.parallelize(catalogRows))
 
-    val queryNearestNeighbour = new QueryHamming(0.0, 1000, 2)
+    val queryNearestNeighbour = new QueryHamming(0.0, 10000, 2)
     val got = queryNearestNeighbour.join(queryMatrix, catalogMatrix).entries.collect
 
     val expected = Array(
