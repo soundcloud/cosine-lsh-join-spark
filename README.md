@@ -20,11 +20,11 @@ is generally set via parameters of the algorithm.
 
 This is an interface to find the k nearest neighbors from a data set for every other object in the
    same data set. Implementations may be either exact or approximate.
-   
+
     trait Joiner {
         def join(matrix: IndexedRowMatrix): CoordinateMatrix
     }
-   
+
 matrix is a row oriented matrix. Each row in the matrix represents
 an item in the dataset. Items are identified by their
 matrix index.
@@ -32,8 +32,8 @@ Returns a similarity matrix with MatrixEntry(itemA, itemB, similarity).
 
 # Example
     // item_a --> (1.0, 1.0, 1.0)
-	// item_b --> (2.0, 2.0, 2.0) 
-	// item_c --> (6.0, 3.0, 2.0) 
+	// item_b --> (2.0, 2.0, 2.0)
+	// item_c --> (6.0, 3.0, 2.0)
 
 	val rows = Seq(
       IndexedRow(1, Vectors.dense(1.0, 1.0, 1.0)),
@@ -42,19 +42,19 @@ Returns a similarity matrix with MatrixEntry(itemA, itemB, similarity).
     )
     val matrix = new IndexedRowMatrix(sc.parallelize(rows))
     val similariyMatrix = joiner.join(matrix)
-    
+
     val results = similariyMatrix.entries.map {
           entry =>
             "item:%d item:%d cosine:%.2f".format(entry.i, entry.j, entry.value)
         }
-        
+
     results.foreach(println)
-        
+
     // above will print:
     // item:2 item:3 cosine:0,87
     // item:1 item:3 cosine:0,87
     // item:1 item:2 cosine:1,00
-    
+
 Please see included **Main.scala** file for a more detailed example.
 
 ## Implementations of the joiner interface
@@ -66,7 +66,7 @@ This is an implementation of the following paper for Spark:
 
 -- <cite>Ravichandran et al.</cite>
 
-The algorithm determines a set of candidate items in the first stage and only computes the exact cosine similarity for those candidates. It has been succesfully used in production with typical run times of a couple of minutes for millions of items. 
+The algorithm determines a set of candidate items in the first stage and only computes the exact cosine similarity for those candidates. It has been succesfully used in production with typical run times of a couple of minutes for millions of items.
 
 Note that candidates are ranked by their exact cosine similarity. Hence, this algorithm will not return any false positives (items that the system thinks are nearby but are actually not). Most real world applications require this e.g. in recommendation systems it is ok to return similar items which are almost as good as the exact nearest neighbours but showing false positives would result in senseless recommendations.
 
@@ -79,7 +79,7 @@ Note that candidates are ranked by their exact cosine similarity. Hence, this al
       storageLevel = StorageLevel.MEMORY_ONLY
     )
 
-Please see the original publication for a detailed description of the parameters. 
+Please see the original publication for a detailed description of the parameters.
 
 ### NearestNeighbours
 Brute force method to compute exact nearest neighbours.
@@ -100,7 +100,7 @@ Implementations may be either exact or approximate.
 
 ### QueryLsh
 Standard Lsh implementation. A query matrix is hashed multiple times and exact hash matches are searched for in a catalog Matrix. These candidates are used to compute the exact cosine distance.
- 
+
 ### QueryHamming
 
 Implementation based on approximated cosine distances. The cosine distances are
@@ -111,10 +111,19 @@ tasks where the catalog matrix is very small compared to the query matrix.
 ### QueryNearestNeighbours
 Brute force O(size(query) * size(catalog)) method to compute exact nearest neighbours for rows in the query matrix. As this is a very expensive computation additional sample parameters may be passed such that neighbours are just computed for a random fraction of the data set. This interface may be used to tune parameters for approximate solutions on a small subset of data.
 
-#Maven
-The artifacts are hosted on Maven Central. Add the following line to your build.sbt file:
-	
-	libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "0.0.4"
+# Maven
+The artifacts are hosted on Maven Central. For Spark 1.x add the following line to your build.sbt file:
+
+	libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "0.0.5"
+
+For Spark 2.x use:
+
+    libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "1.0.0"
+
+or if you're on scala 2.11.x use:
+
+    libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.11" % "1.0.0"
+
 
 #Contributors
 [Özgür Demir](https://github.com/ozgurdemir)
