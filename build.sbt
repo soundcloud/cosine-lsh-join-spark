@@ -6,6 +6,8 @@ version := "1.0.0"
 
 scalaVersion := "2.10.6"
 
+crossScalaVersions := Seq("2.10.6", "2.11.8")
+
 // do not run multiple SparkContext's in local mode in parallel
 parallelExecution in Test := false
 
@@ -22,6 +24,10 @@ libraryDependencies ++= Seq(
 
 // maven settings
 publishMavenStyle := true
+
+// sbt-release settings
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
+releaseCrossBuild := true
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
