@@ -51,7 +51,7 @@ class PackageTest extends FunSuite with SparkLocalContext with Matchers {
 
   test("hamming approximation") {
     val randomGenerator = new Random()
-    val d = 1000 // need this as otherwise results are bad
+    val d = 5000 // in order to get a good approximation
     val k = 150
     val rows = Seq(
       IndexedRow(0, Vectors.dense(Array.fill(k)(randomGenerator.nextGaussian()))),
