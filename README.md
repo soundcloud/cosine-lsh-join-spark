@@ -118,11 +118,11 @@ The artifacts are hosted on Maven Central. For Spark 1.x add the following line 
 
 For Spark 2.x use:
 
-    libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "1.0.0"
+    libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.10" % "1.0.1"
 
 or if you're on scala 2.11.x use:
 
-    libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.11" % "1.0.0"
+    libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.11" % "1.0.1"
 
 
 #Contributors
