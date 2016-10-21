@@ -89,7 +89,7 @@ class LshTest extends FunSuite with SparkLocalContext with Matchers with TestHel
   )
 
   test("sliding window") {
-    val got = lsh.createSlidingWindow(sc.parallelize(signatures), 3)
+    val got = lsh.createSlidingWindow(sc.parallelize(signatures, 10), 3)
     val expected = Seq(
       List(3, 4, 1),
       List(2, 5)
@@ -98,7 +98,7 @@ class LshTest extends FunSuite with SparkLocalContext with Matchers with TestHel
   }
 
   test("sliding window partial") {
-    val got2 = lsh.createSlidingWindow(sc.parallelize(signatures), 20)
+    val got2 = lsh.createSlidingWindow(sc.parallelize(signatures, 10), 10)
     val expected2 = Seq(
       List(3, 4, 1, 2, 5)
     )

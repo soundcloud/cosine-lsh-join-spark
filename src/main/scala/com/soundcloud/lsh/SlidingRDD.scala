@@ -98,11 +98,11 @@ class SlidingRDD[T: ClassTag](@transient val parent: RDD[T], val windowSize: Int
             tail ++= heads(j).take(w1 - tail.length)
             j += 1
           }
-          if (sizes(i) + tail.length >= offset + windowSize) {
+//          if (sizes(i) + tail.length >= offset + windowSize) { // modified: removed
             partitions +=
               new SlidingRDDPartition[T](partitionIndex, parentPartitions(i), tail, offset)
             partitionIndex += 1
-          }
+//          } // modified: removed
         }
         cumSize += size
         i += 1
