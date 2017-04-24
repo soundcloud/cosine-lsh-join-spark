@@ -125,7 +125,7 @@ or if you're on scala 2.11.x use:
     libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.11" % "1.0.1"
 
 
-#Contributors
+# Contributors
 
 [Özgür Demir](https://github.com/ozgurdemir)
 
