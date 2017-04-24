@@ -126,6 +126,7 @@ or if you're on scala 2.11.x use:
 
 
 #Contributors
+
 [Özgür Demir](https://github.com/ozgurdemir)
 
 [Rany Keddo](https://github.com/purzelrakete/)
