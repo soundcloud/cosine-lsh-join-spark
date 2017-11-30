@@ -1,0 +1,11 @@
+{
+    "name": "cosine-lsh-join-spark",
+    "description": "Library implementing approximate nearest neighbors in Spark",
+    "type": "library",
+    "contact_email": "discovery@soundcloud.com",
+    "contact_channel": "discovery",
+    "owner": "discovery",
+    "status": "production",
+    "data_sensitivity": [],
+    "dependencies": []
+}
