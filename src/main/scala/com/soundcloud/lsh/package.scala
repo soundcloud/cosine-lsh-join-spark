@@ -5,7 +5,6 @@ import java.util.Random
 import org.apache.spark.mllib.linalg.distributed.{MatrixEntry, IndexedRow, IndexedRowMatrix}
 import org.apache.spark.mllib.linalg.{Matrices, Matrix, Vector}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.util.collection.BitSet
 
 package object lsh {
 

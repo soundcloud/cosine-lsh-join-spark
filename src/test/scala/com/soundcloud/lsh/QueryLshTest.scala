@@ -2,7 +2,6 @@ package com.soundcloud.lsh
 
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.linalg.distributed._
-import org.apache.spark.util.collection.BitSet
 import org.scalatest.{FunSuite, Matchers}
 
 class QueryLshTest extends FunSuite with SparkLocalContext with Matchers {
@@ -10,6 +9,7 @@ class QueryLshTest extends FunSuite with SparkLocalContext with Matchers {
   val lsh = new QueryLsh(
     minCosineSimilarity = -1.0,
     dimensions = 100,
+    numNeighbours = 10,
     rounds = 10)
 
   test("join bitmap") {
@@ -42,15 +42,6 @@ class QueryLshTest extends FunSuite with SparkLocalContext with Matchers {
         (entry.i, entry.j)
     }
     gotIndex.sorted should be(expected.sorted)
-  }
-
-  test("computeCosine") {
-    val query = Signature(3, Vectors.dense(0, 1), new BitSet(4))
-    val candidate = Signature(4, Vectors.dense(0, 1), new BitSet(4))
-
-    val got = lsh.computeCosine((query, candidate))
-    val expected = new MatrixEntry(3, 4, 1.0)
-    got should be(expected)
   }
 
   test("distinct") {
