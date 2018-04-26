@@ -49,7 +49,7 @@ class QueryLsh(minCosineSimilarity: Double,
   }
 
   private def joinWithRightBounded[K: ClassTag, V: ClassTag, W: ClassTag]
-                          (bound: Int, rdd1: RDD[(K, V)], rdd2: RDD[(K, W)]): RDD[(K, (V, W))] = {
+                                  (bound: Int, rdd1: RDD[(K, V)], rdd2: RDD[(K, W)]): RDD[(K, (V, W))] = {
     rdd1.cogroup(rdd2).flatMapValues( pair =>
       for (v <- pair._1.iterator; w <- pair._2.iterator.take(bound)) yield (v, w)
     )
