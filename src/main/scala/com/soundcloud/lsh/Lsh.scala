@@ -3,7 +3,6 @@ package com.soundcloud.lsh
 import org.apache.spark.mllib.linalg.distributed._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.util.collection.BitSet
 
 /**
  * Lsh implementation as described in 'Randomized Algorithms and NLP: Using
