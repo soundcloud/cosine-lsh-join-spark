@@ -97,7 +97,7 @@ class QueryLsh(minCosineSimilarity: Double,
    * Replicate data into neighboring hashes to increase recall.
    *
    * Each row of the RDD is replicated `replications` times by generating a new row and randomly
-   * flipping a bit of the hash to put it into a different hash bucket.
+   * flipping a bit of the hash to put it into a different neighboring hash bucket.
    */
   private def replicateAndRehash(replications: Int, sigs: RDD[Signature]): RDD[Signature] = {
     if(replications==0) sigs
