@@ -72,7 +72,7 @@ class QueryLsh(minCosineSimilarity: Double,
   }
 
   /*
-   * Randomly flip a bit randomly selected from the prefix of the hash with the
+   * Flip a bit randomly selected from the prefix of the hash with the
    * prefix size specified by `flipBound`.
    *
    * This function is used to randomly split data sets that fall into the hash in order
