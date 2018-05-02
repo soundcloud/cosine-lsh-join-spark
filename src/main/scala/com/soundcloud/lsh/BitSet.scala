@@ -25,7 +25,7 @@ import java.util.Arrays
  * A simple, fixed-size bit set implementation. This implementation is fast because it avoids
  * safety/bound checking.
  */
-class BitSet(numBits: Int) extends Serializable {
+class BitSet(val numBits: Int) extends Serializable {
 
   private val words = new Array[Long](bit2words(numBits))
   private val numWords = words.length
@@ -162,6 +162,11 @@ class BitSet(numBits: Int) extends Serializable {
     words(index >> 6) &= ~bitmask        // div by 64 and mask
   }
 
+  def flip(index: Int) {
+    val bitmask = 1L << (index & 0x3f)
+    words(index >> 6) ^= bitmask
+  }
+
   /**
    * Return the value of the bit with the specified index. The value is true if the bit with
    * the index is currently set in this BitSet; otherwise, the result is false.
@@ -243,4 +248,13 @@ class BitSet(numBits: Int) extends Serializable {
 
   /** Override hashCode method to allow BitSet be used as an RDD key */
   override def hashCode() = words.toSeq.hashCode()
+
+}
+
+object BitSet {
+  def apply(bitSet: BitSet) = {
+    val bitSetCopy = new BitSet(bitSet.numBits)
+    bitSet.iterator.foreach(ix => bitSetCopy.set(ix))
+    bitSetCopy
+  }
 }
