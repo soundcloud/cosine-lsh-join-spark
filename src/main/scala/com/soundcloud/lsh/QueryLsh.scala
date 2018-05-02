@@ -75,7 +75,7 @@ class QueryLsh(minCosineSimilarity: Double,
    * Flip a bit randomly selected from the prefix of the hash with the
    * prefix size specified by `flipBound`.
    *
-   * This function is used to randomly split data sets that fall into the hash in order
+   * This function is used to randomly split data sets that fall into the same hash in order
    * to improve the distribution of data across Spark partitions. This can speed up runtime
    * significantly.
    *
