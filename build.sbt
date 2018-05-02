@@ -2,7 +2,7 @@ organization := "com.soundcloud"
 
 name := "cosine-lsh-join-spark"
 
-scalaVersion := "2.10.6"
+scalaVersion := "2.11.11"
 
 crossScalaVersions := Seq("2.10.6", "2.11.8")
 
