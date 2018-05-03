@@ -52,11 +52,14 @@ class QueryLsh(minCosineSimilarity: Double,
           keyBy(_.bitSet.hashCode)
         joinWithRightBounded(numNeighbours, querySignatures, catalogSignatures).
           values.
-          map {
+          flatMap {
             case (query, catalog) =>
-              new MatrixEntry(query.index, catalog.index, Cosine(query.vector, catalog.vector))
-          }.
-          filter(_.value >= minCosineSimilarity)
+              val cosine = Cosine(query.vector, catalog.vector)
+              if(cosine < minCosineSimilarity)
+                None
+              else
+                Some(new MatrixEntry(query.index, catalog.index, cosine))
+          }
     }
 
     val mergedNeighbours = neighbours.reduce(_ ++ _).distinct
