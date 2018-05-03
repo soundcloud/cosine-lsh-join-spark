@@ -20,6 +20,7 @@
 package com.soundcloud.lsh
 
 import java.util.Arrays
+import scala.util.hashing.MurmurHash3
 
 /**
  * A simple, fixed-size bit set implementation. This implementation is fast because it avoids
@@ -247,7 +248,7 @@ class BitSet(val numBits: Int) extends Serializable {
   private def bit2words(numBits: Int) = ((numBits - 1) >> 6) + 1
 
   /** Override hashCode method to allow BitSet be used as an RDD key */
-  override def hashCode() = words.toSeq.hashCode()
+  override def hashCode() = MurmurHash3.arrayHash(words)
 
 }
 
