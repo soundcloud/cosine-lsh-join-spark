@@ -4,7 +4,6 @@ import java.util.Random
 
 import org.apache.spark.mllib.linalg.{Matrices, Vectors}
 import org.apache.spark.mllib.linalg.distributed.{IndexedRowMatrix, IndexedRow}
-import org.apache.spark.util.collection.BitSet
 import org.scalatest.{Matchers, FunSuite}
 
 class PackageTest extends FunSuite with SparkLocalContext with Matchers {

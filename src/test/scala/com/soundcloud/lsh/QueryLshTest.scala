@@ -2,7 +2,6 @@ package com.soundcloud.lsh
 
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.linalg.distributed._
-import org.apache.spark.util.collection.BitSet
 import org.scalatest.{FunSuite, Matchers}
 
 class QueryLshTest extends FunSuite with SparkLocalContext with Matchers {

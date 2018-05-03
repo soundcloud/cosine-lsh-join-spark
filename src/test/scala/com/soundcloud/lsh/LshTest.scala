@@ -3,7 +3,6 @@ package com.soundcloud.lsh
 import com.soundcloud.TestHelper
 import org.apache.spark.mllib.linalg.distributed._
 import org.apache.spark.mllib.linalg.{Matrices, Vectors}
-import org.apache.spark.util.collection.BitSet
 import org.scalatest.{FunSuite, Matchers}
 
 class LshTest extends FunSuite with SparkLocalContext with Matchers with TestHelper {
