@@ -37,6 +37,7 @@ publishTo := {
 
 publishArtifact in Test := false
 
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 pomExtra := (
     <url>https://github.com/soundcloud/cosine-lsh-join-spark</url>
