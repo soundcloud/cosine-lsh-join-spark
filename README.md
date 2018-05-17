@@ -124,6 +124,15 @@ or if you're on scala 2.11.x use:
 
     libraryDependencies += "com.soundcloud" % "cosine-lsh-join-spark_2.11" % "1.0.1"
 
+## Releasing (maintainers only)
+
+In order to release the library using the release plugin `sbt release`, you need to set up the following:
+ * A PGP key in order to sign the package.
+ * Register an account on sonatype's JIRA: https://issues.sonatype.org/secure/Signup!default.jspa
+ * Request the right permissions by filing an issue
+   (see for example https://issues.sonatype.org/browse/OSSRH-39877)
+ * Lastly, add your credentials to `$HOME/.ivy2/.credentials`
+   as explained here: https://www.scala-sbt.org/1.x/docs/Publishing.html#Credentials
 
 # Contributors
 
