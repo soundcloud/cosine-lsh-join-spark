@@ -131,8 +131,10 @@ In order to release the library using the release plugin `sbt release`, you need
  * Register an account on sonatype's JIRA: https://issues.sonatype.org/secure/Signup!default.jspa
  * Request the right permissions by filing an issue
    (see for example https://issues.sonatype.org/browse/OSSRH-39877)
- * Lastly, add your credentials to `$HOME/.ivy2/.credentials`
+ * Add your credentials to `$HOME/.ivy2/.credentials`
    as explained here: https://www.scala-sbt.org/1.x/docs/Publishing.html#Credentials
+ * Run the release command
+ * Close and release the staging repository as explained here: http://central.sonatype.org/pages/releasing-the-deployment.html
 
 # Contributors
 
