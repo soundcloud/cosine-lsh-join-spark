@@ -26,7 +26,7 @@ case class SubBucket(bucketHash: Int, subBucketId: Int = -1)
  *                            longer the computation.
  * @param randomReplications  The number of times that catalog set should be replicated in order
  *                            to increase LSH recall.
- * @param bucketSplittingPercentile The percentile of the user bucket size that is used as reference for the maximal
+ * @param bucketSplittingPercentile The percentile of the query bucket size that is used as reference for the maximal
  *                                  bucket size. Any bucket bigger than that will be split in sub-buckets that are smaller.
  *
  */
@@ -52,12 +52,12 @@ class QueryLsh(minCosineSimilarity: Double,
         val bucketSplitsBc = sparkSession.sparkContext.broadcast(bucketSplits)
 
 
-        val splitQuerySignatures: RDD[(SubBucket, Signature)] = splitIntoSubbuckets(querySignatures, bucketSplitsBc)
+        val splitQuerySignatures: RDD[(SubBucket, Signature)] = splitIntoSubBuckets(querySignatures, bucketSplitsBc)
 
         val duplicatedCatalogSignatures: RDD[(SubBucket, Signature)] =
           matrixToBitSet(catalogMatrix, randomMatrix).
             andThen(replicateAndRehash(randomReplications, _)).
-            andThen(duplicateInSubbuckets(_, bucketSplitsBc))
+            andThen(duplicateInSubBuckets(_, bucketSplitsBc))
 
         joinWithRightBounded(numNeighbours, splitQuerySignatures, duplicatedCatalogSignatures).
           values.
@@ -76,7 +76,7 @@ class QueryLsh(minCosineSimilarity: Double,
     new CoordinateMatrix(mergedNeighbours)
   }
 
-  private def duplicateInSubbuckets(signatures: RDD[Signature], bucketSplitsBc: Broadcast[Map[Int, Int]]) = {
+  private def duplicateInSubBuckets(signatures: RDD[Signature], bucketSplitsBc: Broadcast[Map[Int, Int]]): RDD[(SubBucket, Signature)] = {
     val newCatalogSignatures = signatures.
       flatMap { signature =>
         val hash = signature.bitSet.hashCode()
@@ -88,7 +88,7 @@ class QueryLsh(minCosineSimilarity: Double,
     newCatalogSignatures
   }
 
-  private def splitIntoSubbuckets(querySignatures: RDD[(Int, Signature)], bucketSplitsBc: Broadcast[Map[Int, Int]]) = {
+  private def splitIntoSubBuckets(querySignatures: RDD[(Int, Signature)], bucketSplitsBc: Broadcast[Map[Int, Int]]): RDD[(SubBucket, Signature)] = {
     querySignatures.mapPartitions { partition =>
       val random = new Random()
       partition.map { case (hash, signature) =>
@@ -111,8 +111,8 @@ class QueryLsh(minCosineSimilarity: Double,
 
     val bucketSizes: RDD[(Int, Int)] = querySignatures.mapValues(_ => 1).reduceByKey(_ + _).cache
 
-    val Array(maxBucketSize) = bucketSizes.toDF("hash", "userCount")
-      .stat.approxQuantile("userCount", Array(bucketSplittingPercentile), 0.001)
+    val Array(maxBucketSize) = bucketSizes.toDF("hash", "queryCount")
+      .stat.approxQuantile("queryCount", Array(bucketSplittingPercentile), 0.001)
     println("maximum bucket size: " + maxBucketSize)
 
     val bucketSplits = bucketSizes.filter(_._2 > maxBucketSize).mapValues(_ / maxBucketSize.toInt + 1).collect().toMap
