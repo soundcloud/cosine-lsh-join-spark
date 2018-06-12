@@ -2,15 +2,16 @@ package com.soundcloud.lsh
 
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.linalg.distributed._
+import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.scalatest.{FunSuite, Matchers}
 
 class QueryLshTest extends FunSuite with SparkLocalContext with Matchers {
 
-  val lsh = new QueryLsh(
+  lazy val lsh = new QueryLsh(
     minCosineSimilarity = -1.0,
     dimensions = 100,
     numNeighbours = 10,
-    rounds = 10)
+    rounds = 10)(new SQLContext(sc).sparkSession)
 
   test("join bitmap") {
     val bitseq = Seq(

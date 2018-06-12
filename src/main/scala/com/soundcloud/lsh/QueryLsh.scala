@@ -1,14 +1,16 @@
 package com.soundcloud.lsh
 
-import scala.reflect.ClassTag
-
+import com.soundcloud.lsh.SparkImplicits._
+import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRowMatrix, MatrixEntry}
-import org.apache.spark.storage.StorageLevel
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
+
+import scala.reflect.ClassTag
 import scala.util.Random
 
-import com.soundcloud.lsh.SparkImplicits._
 
+case class SubBucket(bucketHash: Int, subBucketId: Int = -1)
 
 /**
  * Standard Lsh implementation. The queryMatrix is hashed multiple times and exact hash matches are
@@ -22,35 +24,42 @@ import com.soundcloud.lsh.SparkImplicits._
  *                            a matching LSH hash
  * @param rounds              number of hash rounds. The more the better the approximation but
  *                            longer the computation.
- * @param flippableBits       A value different than zero enables random bit flipping of hash
- *                            to improve data distribution. The more bits are subject to flipping,
- *                            the better the data distribution (and the faster the job runs).
- *                            However, the recall will drop.
  * @param randomReplications  The number of times that catalog set should be replicated in order
  *                            to increase LSH recall.
+ * @param bucketSplittingPercentile The percentile of the query bucket size that is used as reference for the maximal
+ *                                  bucket size. Any bucket bigger than that will be split in sub-buckets that are smaller.
  *
  */
 class QueryLsh(minCosineSimilarity: Double,
                dimensions: Int,
                numNeighbours: Int,
                rounds: Int,
-               flippableBits: Int = 0,
-               randomReplications: Int = 0) extends QueryJoiner with Serializable {
+               randomReplications: Int = 0,
+               bucketSplittingPercentile: Double = 0.95)(sparkSession: SparkSession) extends QueryJoiner with Serializable {
 
   override def join(queryMatrix: IndexedRowMatrix, catalogMatrix: IndexedRowMatrix): CoordinateMatrix = {
     val numFeatures = queryMatrix.numCols().toInt
 
     val neighbours = 0 until rounds map {
-      _ =>
+      i =>
         val randomMatrix = localRandomMatrix(dimensions, numFeatures)
-        val querySignatures = matrixToBitSet(queryMatrix, randomMatrix).
-          andThen(flipRandomBitUpTo(flippableBits, _)).
-          keyBy(_.bitSet.hashCode)
-        val catalogSignatures = matrixToBitSet(catalogMatrix, randomMatrix).
-          andThen(flipRandomBitUpTo(flippableBits, _)).
-          andThen(replicateAndRehash(randomReplications, _)).
-          keyBy(_.bitSet.hashCode)
-        joinWithRightBounded(numNeighbours, querySignatures, catalogSignatures).
+        val querySignatures: RDD[(Int, Signature)] = matrixToBitSet(queryMatrix, randomMatrix).
+          keyBy(_.bitSet.hashCode())
+
+        querySignatures.setName(s"querySignatures run $i").cache()
+
+        val bucketSplits: Map[Int, Int] = computeBucketSplits(querySignatures)
+        val bucketSplitsBc = sparkSession.sparkContext.broadcast(bucketSplits)
+
+
+        val splitQuerySignatures: RDD[(SubBucket, Signature)] = splitIntoSubBuckets(querySignatures, bucketSplitsBc)
+
+        val duplicatedCatalogSignatures: RDD[(SubBucket, Signature)] =
+          matrixToBitSet(catalogMatrix, randomMatrix).
+            andThen(replicateAndRehash(randomReplications, _)).
+            andThen(duplicateInSubBuckets(_, bucketSplitsBc))
+
+        joinWithRightBounded(numNeighbours, splitQuerySignatures, duplicatedCatalogSignatures).
           values.
           flatMap {
             case (query, catalog) =>
@@ -58,13 +67,59 @@ class QueryLsh(minCosineSimilarity: Double,
               if(cosine < minCosineSimilarity)
                 None
               else
-                Some(new MatrixEntry(query.index, catalog.index, cosine))
+                Some(MatrixEntry(query.index, catalog.index, cosine))
           }
     }
 
     val mergedNeighbours = neighbours.reduce(_ ++ _).distinct
 
     new CoordinateMatrix(mergedNeighbours)
+  }
+
+  private def duplicateInSubBuckets(signatures: RDD[Signature], bucketSplitsBc: Broadcast[Map[Int, Int]]): RDD[(SubBucket, Signature)] = {
+    val newCatalogSignatures = signatures.
+      flatMap { signature =>
+        val hash = signature.bitSet.hashCode()
+        bucketSplitsBc.value.get(hash) match {
+          case None => Seq((SubBucket(hash), signature))
+          case Some(numSplits) => 0 until numSplits map { i => (SubBucket(hash, i), signature) }
+        }
+      }
+    newCatalogSignatures
+  }
+
+  private def splitIntoSubBuckets(querySignatures: RDD[(Int, Signature)], bucketSplitsBc: Broadcast[Map[Int, Int]]): RDD[(SubBucket, Signature)] = {
+    querySignatures.mapPartitions { partition =>
+      val random = new Random()
+      partition.map { case (hash, signature) =>
+        bucketSplitsBc.value.get(hash) match {
+          case None => (SubBucket(hash), signature)
+          case Some(numSplits) => (SubBucket(hash, random.nextInt(numSplits)), signature)
+        }
+      }
+    }
+  }
+
+  /*
+     * Compute how many times each bucket needs to be split
+     *
+     * First, compute `bucketSplittingPercentile` percentile of bucket sizes, then determine the bucket splits so that
+     * no bucket is bigger than that percentile.
+     */
+  private def computeBucketSplits(querySignatures: RDD[(Int, Signature)]): Map[Int, Int] = {
+    import sparkSession.implicits._
+
+    val bucketSizes: RDD[(Int, Int)] = querySignatures.mapValues(_ => 1).reduceByKey(_ + _).cache
+
+    val Array(maxBucketSize) = bucketSizes.toDF("hash", "queryCount")
+      .stat.approxQuantile("queryCount", Array(bucketSplittingPercentile), 0.001)
+    println("maximum bucket size: " + maxBucketSize)
+
+    val bucketSplits = bucketSizes.filter(_._2 > maxBucketSize).mapValues(_ / maxBucketSize.toInt + 1).collect().toMap
+    bucketSizes.unpersist()
+    println("number of buckets to split: " + bucketSplits.size)
+    println("buckets to split: " + bucketSplits)
+    bucketSplits
   }
 
   private def joinWithRightBounded[K: ClassTag, V: ClassTag, W: ClassTag]
@@ -74,27 +129,6 @@ class QueryLsh(minCosineSimilarity: Double,
     )
   }
 
-  /*
-   * Flip a bit randomly selected from the prefix of the hash with the
-   * prefix size specified by `flipBound`.
-   *
-   * This function is used to randomly split data sets that fall into the same hash in order
-   * to improve the distribution of data across Spark partitions. This can speed up runtime
-   * significantly.
-   *
-   */
-  private def flipRandomBitUpTo(flipBound: Int, sigs: RDD[Signature]): RDD[Signature] = {
-    if(flipBound==0) sigs
-    else
-      sigs.mapPartitions{ partition =>
-        val random = new Random()
-        partition.map{ sig =>
-          val ix = random.nextInt(flipBound)
-          sig.bitSet.flip(ix)
-          sig
-        }
-      }
-  }
 
   /*
    * Replicate data into neighboring hashes to increase recall.
