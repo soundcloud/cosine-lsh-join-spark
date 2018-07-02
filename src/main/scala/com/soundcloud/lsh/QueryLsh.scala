@@ -1,14 +1,15 @@
 package com.soundcloud.lsh
 
 import com.soundcloud.lsh.SparkImplicits._
+import org.apache.spark.ReExports.BoundedPriorityQueue
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, IndexedRowMatrix, MatrixEntry}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
+import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.Random
-
 
 case class SubBucket(bucketHash: Int, subBucketId: Int = -1)
 
@@ -22,6 +23,7 @@ case class SubBucket(bucketHash: Int, subBucketId: Int = -1)
  *                            vectors of length d
  * @param numNeighbours       maximum number of catalogItems to be matched for a query when there is
  *                            a matching LSH hash
+ * @param maxMatches          maximum number of candidates to return for each query
  * @param rounds              number of hash rounds. The more the better the approximation but
  *                            longer the computation.
  * @param randomReplications  The number of times that catalog set should be replicated in order
@@ -33,6 +35,7 @@ case class SubBucket(bucketHash: Int, subBucketId: Int = -1)
 class QueryLsh(minCosineSimilarity: Double,
                dimensions: Int,
                numNeighbours: Int,
+               maxMatches: Int,
                rounds: Int,
                randomReplications: Int = 0,
                bucketSplittingPercentile: Double = 0.95)(sparkSession: SparkSession) extends QueryJoiner with Serializable {
@@ -71,9 +74,31 @@ class QueryLsh(minCosineSimilarity: Double,
           }
     }
 
-    val mergedNeighbours = neighbours.reduce(_ ++ _).distinct
+    val mergedNeighbours = distinctTopK(neighbours.reduce(_ ++ _), maxMatches)
 
     new CoordinateMatrix(mergedNeighbours)
+  }
+
+  private def distinctTopK(rdd: RDD[MatrixEntry], k: Int): RDD[MatrixEntry] = {
+    rdd.mapPartitions { partition =>
+      // It is assumed that the partitions do not contain duplicates (this is mostly true, but might be false if a query has been split in multiple subbuckets,
+      // and a catalog item is replicated in two subbuckets, and the two subbuckets end up in the same partition).
+      // As a result, we don't deduplicate before shuffling, and might have less than k unique items per partition in some cases.
+      val m = mutable.Map.empty[Long, BoundedPriorityQueue[MatrixEntry]]
+
+      for (entry <- partition) {
+        val key = entry.i
+        val queue = m.getOrElseUpdate(key, new BoundedPriorityQueue[MatrixEntry](k)(Ordering.by(_.value)))
+        queue += entry
+      }
+
+      m.toIterator
+    }.reduceByKey { case (matches1, matches2) =>
+      // This is a pretty naive implementation of distinct+topk. It's likely possible to get better performance by writing a custom
+      // priority queue that has no duplicates.
+      val distinctMatches: Set[MatrixEntry] = matches1.toSet ++ matches2
+      new BoundedPriorityQueue[MatrixEntry](k)(Ordering.by(_.value)) ++= distinctMatches
+    }.flatMap(_._2)
   }
 
   private def duplicateInSubBuckets(signatures: RDD[Signature], bucketSplitsBc: Broadcast[Map[Int, Int]]): RDD[(SubBucket, Signature)] = {
@@ -113,12 +138,9 @@ class QueryLsh(minCosineSimilarity: Double,
 
     val Array(maxBucketSize) = bucketSizes.toDF("hash", "queryCount")
       .stat.approxQuantile("queryCount", Array(bucketSplittingPercentile), 0.001)
-    println("maximum bucket size: " + maxBucketSize)
 
     val bucketSplits = bucketSizes.filter(_._2 > maxBucketSize).mapValues(_ / maxBucketSize.toInt + 1).collect().toMap
     bucketSizes.unpersist()
-    println("number of buckets to split: " + bucketSplits.size)
-    println("buckets to split: " + bucketSplits)
     bucketSplits
   }
 

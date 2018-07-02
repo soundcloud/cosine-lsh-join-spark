@@ -11,6 +11,7 @@ class QueryLshTest extends FunSuite with SparkLocalContext with Matchers {
     minCosineSimilarity = -1.0,
     dimensions = 100,
     numNeighbours = 10,
+    maxMatches = 1000,
     rounds = 10)(new SQLContext(sc).sparkSession)
 
   test("join bitmap") {
