@@ -138,12 +138,9 @@ class QueryLsh(minCosineSimilarity: Double,
 
     val Array(maxBucketSize) = bucketSizes.toDF("hash", "queryCount")
       .stat.approxQuantile("queryCount", Array(bucketSplittingPercentile), 0.001)
-    println("maximum bucket size: " + maxBucketSize)
 
     val bucketSplits = bucketSizes.filter(_._2 > maxBucketSize).mapValues(_ / maxBucketSize.toInt + 1).collect().toMap
     bucketSizes.unpersist()
-    println("number of buckets to split: " + bucketSplits.size)
-    println("buckets to split: " + bucketSplits)
     bucketSplits
   }
 
