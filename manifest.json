@@ -4,7 +4,7 @@
   "type": "library",
   "contact_email": "recommendations-eng@soundcloud.com",
   "contact_channel": "#recommendations",
-  "owner": "recommendations",
+  "owner": "recommendations-eng-team",
   "status": "production",
   "data_sensitivity": [],
   "dependencies": []
