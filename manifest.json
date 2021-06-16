@@ -3,7 +3,7 @@
   "description": "Library implementing approximate nearest neighbors in Spark",
   "type": "library",
   "contact_email": "recommendations-eng@soundcloud.com",
-  "contact_channel": "#recommendations",
+  "contact_channel": "recommendations",
   "owner": "recommendations-eng-team",
   "status": "production",
   "data_sensitivity": [],
