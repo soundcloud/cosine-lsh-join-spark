@@ -6,6 +6,5 @@
   "contact_channel": "recommendations",
   "owner": "recommendations-eng-team",
   "status": "production",
-  "data_sensitivity": [],
   "dependencies": []
 }
